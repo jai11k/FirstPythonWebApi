@@ -13,7 +13,9 @@ class Post(BaseModel):
     rating :  Optional[int] = None
 
 my_posts=[{"title":"titleValue1","content":"contentValue1","id":1 },
-          {"title":"titleValue2","content":"contentValue2","id":2 }]
+          {"title":"titleValue2","content":"contentValue2","id":2 },
+          {"title":"titleValue3","content":"contentValue3","id":3 },
+          {"title":"titleValue4","content":"contentValue4","id":4 }]
 
 def find_post(id):
     for post in my_posts:
@@ -21,8 +23,13 @@ def find_post(id):
             return post
         
 def find_index_post(id):
-    for i,post in enumerate(my_posts):
-        if post['id']==id:
+    # print(f'id as parameter in loop=>{id}')
+    for i,p in enumerate(my_posts):
+        print(p['id'])
+        print(f'----->{i}')
+        if p['id']==id:
+            print(p['id'])
+            print(f'<---{i}')
             return i
         
 
@@ -44,7 +51,7 @@ def get_posts():
 
 #Create
 @app.post("/posts",status_code=status.HTTP_201_CREATED)
-def create_user(post: Post):
+def create_post(post: Post):
     post_dict=post.dict()
     post_dict['id']=randrange(0,1000000)
     my_posts.append(post_dict)
@@ -62,10 +69,28 @@ def get_post(id: int, response: Response):
 
 
 #Delete single post
-@app.delete("/posts/{id}")
+@app.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int):
 
     index=find_index_post(id)
-    my_posts.pop(index)
-    
-    return {"message": f"post was successfully deleted"}
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'post with id {id} does not exsits')
+    else:
+        my_posts.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+#update the post
+@app.put("/posts/{id}")
+def update_post(id: int,post: Post):
+   
+    index=find_index_post(id)
+    if index == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=f'post with id {id} does not exsits')
+
+    post_dict=post.dict()
+    post_dict['id']=id
+    my_posts[index]=post_dict
+
+    return {"data": post_dict}
+
